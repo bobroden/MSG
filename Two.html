@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="Two.css">
+    <link rel="shortcut icon" href="https://lab.visual-logic.com/wp-content/uploads/2010/08/spline_modeling_05.jpg" type="image/png">
+    <title>Spline</title>
+</head>
+<body>
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="canvas" width="1400" height="800"></canvas>
+        </div>
+        <div class="button-container">
+            <h2 class="title">Working with points!</h2>
+            <form class="form" method="post" action="" onsubmit="return false">
+                <label for="number">Number of points (min = 4, max = 16)</label>
+                <br>
+                <input type="number" name="number" class="number" min="4" max="16" step="1" placeholder="Number" id="name">
+                <span class="help vissible">Enter the correct value!</span>
+                <br>
+                <input type="checkbox" name="auto" class="auto" id="auto">
+                <label for="auto">The autocomplete feature points</label>
+                <h4 class="points">Points (-701 < x < 701, -401 < y < 401):</h4>
+                <div class="points-container">
+                </div>
+                <div class="draw-container">
+                    <button class="draw">Draw!</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+    <script type="text/javascript" src="Two.js"></script>
+</html>
