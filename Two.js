@@ -1,70 +1,106 @@
 var coords = [];
+var coordsX = [];
+var coordsY =[];
 var k = 0;
-
-var plot = function(x, y, c) { // ”становить пиксель в т. (x, y) с прозрачностью c 
-    if(isFinite(x) && isFinite(y)) {
-        var color = {
-            r: plot.color.r,
-            g: plot.color.g,
-            b: plot.color.b,
-            a: plot.color.a * c
-        };
  
-        setPixel(x, y, color);
+CanvasRenderingContext2D.prototype.curve = CanvasRenderingContext2D.prototype.curve || function(points, tension, numOfSeg, close) {
+
+    // options or defaults
+    tension = (typeof tension === 'number') ? tension : 0.5;
+    numOfSeg = numOfSeg ? numOfSeg : 25;
+
+    var pts,                                    // for cloning point array
+        i = 1,
+        l = points.length,
+        rPos = 0,
+        rLen = (l-2) * numOfSeg + 2 + (close ? 2 * numOfSeg: 0),
+        res = new Float32Array(rLen),
+        cache = new Float32Array((numOfSeg + 2) * 4),
+        cachePtr = 4;
+
+    pts = points.slice(0);
+
+    if (close) {
+        pts.unshift(points[l - 1]);             // insert end point as first point
+        pts.unshift(points[l - 2]);
+        pts.push(points[0], points[1]);         // first point as last point
     }
+    else {
+        pts.unshift(points[1]);                 // copy 1. point and insert at beginning
+        pts.unshift(points[0]);
+        pts.push(points[l - 2], points[l - 1]); // duplicate end-points
+    }
+
+    // cache inner-loop calculations as they are based on t alone
+    cache[0] = 1;                               // 1,0,0,0
+
+    for (; i < numOfSeg; i++) {
+
+        var st = i / numOfSeg,
+            st2 = st * st,
+            st3 = st2 * st,
+            st23 = st3 * 2,
+            st32 = st2 * 3;
+
+        cache[cachePtr++] = st23 - st32 + 1;    // c1
+        cache[cachePtr++] = st32 - st23;        // c2
+        cache[cachePtr++] = st3 - 2 * st2 + st; // c3
+        cache[cachePtr++] = st3 - st2;          // c4
+    }
+
+    cache[++cachePtr] = 1;                      // 0,1,0,0
+
+    // calc. points
+    parse(pts, cache, l);
+
+    if (close) {
+        //l = points.length;
+        pts = [];
+        pts.push(points[l - 4], points[l - 3], points[l - 2], points[l - 1]); // second last and last
+        pts.push(points[0], points[1], points[2], points[3]); // first and second
+        parse(pts, cache, 4);
+    }
+
+    function parse(pts, cache, l) {
+
+        for (var i = 2, t; i < l; i += 2) {
+
+            var pt1 = pts[i],
+                pt2 = pts[i+1],
+                pt3 = pts[i+2],
+                pt4 = pts[i+3],
+
+                t1x = (pt3 - pts[i-2]) * tension,
+                t1y = (pt4 - pts[i-1]) * tension,
+                t2x = (pts[i+4] - pt1) * tension,
+                t2y = (pts[i+5] - pt2) * tension;
+
+            for (t = 0; t < numOfSeg; t++) {
+
+                var c = t << 2, //t * 4;
+
+                    c1 = cache[c],
+                    c2 = cache[c+1],
+                    c3 = cache[c+2],
+                    c4 = cache[c+3];
+
+                res[rPos++] = c1 * pt1 + c2 * pt3 + c3 * t1x + c4 * t2x;
+                res[rPos++] = c1 * pt2 + c2 * pt4 + c3 * t1y + c4 * t2y;
+            }
+        }
+    }
+
+    // add last point
+    l = close ? 0 : points.length - 2;
+    res[rPos++] = points[l];
+    res[rPos] = points[l+1];
+
+    // add lines to path
+    for(i = 0, l = res.length; i < l; i += 2)
+        this.lineTo(res[i], res[i+1]);
+
+    return res;
 };
- 
-function setPixel (x, y, c) { // функция установки пикселя в js
-    c = c || 1;
-    var p = canva.createImageData(1, 1);
-    p.data[0] = c.r;
-    p.data[1] = c.g;
-    p.data[2] = c.b;
-    p.data[3] = c.a;
-    var data = canva.getImageData(x, y, 1, 1).data;
-    if(data[3] <= p.data[3])
-    canva.putImageData(p, x, y);
-}
- 
-function drawSpline(color) {
-    var num = 0;
-    for(var i = 0; i < 2 * k; i += 2){
-        if(i > 0) {
-            var deltaX = coords[i / 2 + 1].X - coords[i / 2].X;
-            var deltaY = coords[i / 2 + 1].Y - coords[i / 2].Y;
-            num += Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        }
-    }
-    coords[0] = coords[1];
-    coords[coords.length] = coords[coords.length - 1];
-    plot.color = color;
-    for (var i = 1; i <= coords.length - 3; i++)// в цикле по всем четвёркам точек
-    {
-        var a = [], b = [];
-        arrs = {a:a, b:b};
-        _SplineCoefficient(i, arrs, coords);// считаем коэффициенты q   `
-        var points = {};// создаём массив промежуточных точек
-        for(var j = 0; j < num; j++)
-        {
-           var t = j / num;// шаг интерполяции
-            // передаём массиву точек значения по методу beta-spline
-            points.X = (arrs.a[0] + t * (arrs.a[1] + t * (arrs.a[2] + t * arrs.a[3])));
-            points.Y = (arrs.b[0] + t * (arrs.b[1] + t * (arrs.b[2] + t * arrs.b[3])));
-            plot(points.X + 700, points.Y + 400,color.a / 255);
-        }
-    }
-}
-
-function _SplineCoefficient(i, arrs, coords) {    // в функции рассчитываются коэффициенты a0-a3, b0-b3
-    arrs.a[3] = (-coords[i - 1].X + 3 * coords[i].X - 3 * coords[i + 1].X + coords[i + 2].X) / 6;   
-    arrs.a[2] = (coords[i - 1].X - 2 * coords[i].X + coords[i + 1].X) / 2;   
-    arrs.a[1] = (-coords[i - 1].X + coords[i + 1].X) / 2;   
-    arrs.a[0] = (coords[i - 1].X + 4 * coords[i].X + coords[i + 1].X) / 6;  
-    arrs.b[3] = (-coords[i - 1].Y + 3 * coords[i].Y - 3 * coords[i + 1].Y + coords[i + 2].Y) / 6;    
-    arrs.b[2] = (coords[i - 1].Y - 2 * coords[i].Y + coords[i + 1].Y) / 2;   
-    arrs.b[1] = (-coords[i - 1].Y + coords[i + 1].Y) / 2; 
-    arrs.b[0] = (coords[i - 1].Y + 4 * coords[i].Y + coords[i + 1].Y) / 6;
-}
 
 var canva = document.getElementById("canvas").getContext('2d');
 canva.translate(700, 400);
@@ -76,6 +112,21 @@ canva.lineTo(700, 0);
 canva.stroke();
 var mouseX, mouseY;
 var Line, Points;
+
+function ordering(arr1, arr2) {
+    while(arr1.length !== 0) {
+        var min = arr1[0];
+        var ind = 0;
+        for (var i = 0; i < arr1.length; i++) {
+            if(min > arr1[i]) {
+                min = arr1[i];
+                ind = i;
+            }
+        }
+        coords.push(arr1.splice(ind, 1));
+        coords.push(arr2.splice(ind, 1));
+    }
+}
 
 document.querySelector('.number').addEventListener('input', () => {
     let num = document.querySelector('.number').value;
@@ -133,15 +184,19 @@ document.querySelector('.draw').addEventListener('click', () => {
         coords = [];
         k = 0;
         for(var j = 0; j < document.querySelectorAll('.coords').length; j += 2) {
-            k++;
-            coords[k] = {X: +document.querySelectorAll('.coords')[j].value, Y: - +document.querySelectorAll('.coords')[j + 1].value};
+            k += 1;
+            coordsX.push(+document.querySelectorAll('.coords')[j].value);
+            coordsY.push(- +document.querySelectorAll('.coords')[j + 1].value);
         }
+        ordering(coordsX, coordsY);
         if (k > 3) {
-           drawSpline( {r:255, g:0, b:0, a:255}, coords[k-3].X, coords[k-3].Y, coords[k-2].X, coords[k-2].Y, coords[k-1].X, coords[k-1].Y, coords[k].X, coords[k].Y);
+            canva.moveTo(coords[0], coords[1]);
+            canva.curve(coords);
+            canva.stroke();
         }
-        for (var i = 0; i < coords.length - 1; i++) {   
+        for (var i = 0; i < coords.length; i += 2) {   
             canva.beginPath();
-            canva.arc(coords[i + 1].X, coords[i + 1].Y, 2, 0, 2 * Math.PI);
+            canva.arc(coords[i], coords[i + 1], 2, 0, 2 * Math.PI);
             canva.stroke();
             canva.fillStyle = "green";
             canva.fill();
