@@ -1,205 +1,248 @@
-var coords = [];
-var coordsX = [];
-var coordsY =[];
-var k = 0;
- 
-CanvasRenderingContext2D.prototype.curve = CanvasRenderingContext2D.prototype.curve || function(points, tension, numOfSeg, close) {
-
-    // options or defaults
-    tension = (typeof tension === 'number') ? tension : 0.5;
-    numOfSeg = numOfSeg ? numOfSeg : 25;
-
-    var pts,                                    // for cloning point array
-        i = 1,
-        l = points.length,
-        rPos = 0,
-        rLen = (l-2) * numOfSeg + 2 + (close ? 2 * numOfSeg: 0),
-        res = new Float32Array(rLen),
-        cache = new Float32Array((numOfSeg + 2) * 4),
-        cachePtr = 4;
-
-    pts = points.slice(0);
-
-    if (close) {
-        pts.unshift(points[l - 1]);             // insert end point as first point
-        pts.unshift(points[l - 2]);
-        pts.push(points[0], points[1]);         // first point as last point
-    }
-    else {
-        pts.unshift(points[1]);                 // copy 1. point and insert at beginning
-        pts.unshift(points[0]);
-        pts.push(points[l - 2], points[l - 1]); // duplicate end-points
-    }
-
-    // cache inner-loop calculations as they are based on t alone
-    cache[0] = 1;                               // 1,0,0,0
-
-    for (; i < numOfSeg; i++) {
-
-        var st = i / numOfSeg,
-            st2 = st * st,
-            st3 = st2 * st,
-            st23 = st3 * 2,
-            st32 = st2 * 3;
-
-        cache[cachePtr++] = st23 - st32 + 1;    // c1
-        cache[cachePtr++] = st32 - st23;        // c2
-        cache[cachePtr++] = st3 - 2 * st2 + st; // c3
-        cache[cachePtr++] = st3 - st2;          // c4
-    }
-
-    cache[++cachePtr] = 1;                      // 0,1,0,0
-
-    // calc. points
-    parse(pts, cache, l);
-
-    if (close) {
-        //l = points.length;
-        pts = [];
-        pts.push(points[l - 4], points[l - 3], points[l - 2], points[l - 1]); // second last and last
-        pts.push(points[0], points[1], points[2], points[3]); // first and second
-        parse(pts, cache, 4);
-    }
-
-    function parse(pts, cache, l) {
-
-        for (var i = 2, t; i < l; i += 2) {
-
-            var pt1 = pts[i],
-                pt2 = pts[i+1],
-                pt3 = pts[i+2],
-                pt4 = pts[i+3],
-
-                t1x = (pt3 - pts[i-2]) * tension,
-                t1y = (pt4 - pts[i-1]) * tension,
-                t2x = (pts[i+4] - pt1) * tension,
-                t2y = (pts[i+5] - pt2) * tension;
-
-            for (t = 0; t < numOfSeg; t++) {
-
-                var c = t << 2, //t * 4;
-
-                    c1 = cache[c],
-                    c2 = cache[c+1],
-                    c3 = cache[c+2],
-                    c4 = cache[c+3];
-
-                res[rPos++] = c1 * pt1 + c2 * pt3 + c3 * t1x + c4 * t2x;
-                res[rPos++] = c1 * pt2 + c2 * pt4 + c3 * t1y + c4 * t2y;
-            }
+function buildCells(a, b) {
+    document.querySelector('.cells-container').innerHTML = '';
+    for(let i = 0; i < b; i++) {
+        let div = document.createElement('div');
+        div.setAttribute('class', 'stroke');
+        for(let j = 0; j < a; j++) {
+            let label = document.createElement('label');
+            label.innerHTML = 'x' + '<sub>' + (j + 1) + '</sub>';
+            label.setAttribute('class', 'cell-desc');
+            let input = document.createElement('input');
+            input.setAttribute('type', 'number');
+            input.setAttribute('name', 'cell');
+            input.setAttribute('class', 'cell');
+            div.append(input);
+            div.append(label);
         }
-    }
-
-    // add last point
-    l = close ? 0 : points.length - 2;
-    res[rPos++] = points[l];
-    res[rPos] = points[l+1];
-
-    // add lines to path
-    for(i = 0, l = res.length; i < l; i += 2)
-        this.lineTo(res[i], res[i+1]);
-
-    return res;
-};
-
-var canva = document.getElementById("canvas").getContext('2d');
-canva.translate(700, 400);
-canva.beginPath();
-canva.moveTo(0, -400);
-canva.lineTo(0, 400);
-canva.moveTo(-700, 0);
-canva.lineTo(700, 0);
-canva.stroke();
-var mouseX, mouseY;
-var Line, Points;
-
-function ordering(arr1, arr2) {
-    while(arr1.length !== 0) {
-        var min = arr1[0];
-        var ind = 0;
-        for (var i = 0; i < arr1.length; i++) {
-            if(min > arr1[i]) {
-                min = arr1[i];
-                ind = i;
-            }
-        }
-        coords.push(arr1.splice(ind, 1));
-        coords.push(arr2.splice(ind, 1));
+        let span = document.createElement('span');
+        span.innerHTML = '=';
+        let answer = document.createElement('input');
+        answer.setAttribute('type', 'number');
+        answer.setAttribute('name', 'cell');
+        answer.setAttribute('class', 'answer');
+        div.append(span);
+        div.append(answer);
+        document.querySelector('.cells-container').append(div);
     }
 }
 
-document.querySelector('.number').addEventListener('input', () => {
-    let num = document.querySelector('.number').value;
-    if(num <= 16 && num >= 4 && num % 1 === 0) {
-        document.querySelector('.help').classList.add('vissible');
-        document.querySelector('.points-container').innerHTML = '';
-        for(let i = 0; i < num; i++) {
-            let label1 = document.createElement('label');
-            label1.innerHTML = 'X:';
-            let Xinput = document.createElement('input');
-            Xinput.setAttribute('type', 'number');
-            Xinput.setAttribute('name', 'coords');
-            Xinput.setAttribute('class', 'coords');
-            let label2 = document.createElement('label');
-            label2.innerHTML = 'Y:';
-            let Yinput = document.createElement('input');
-            Yinput.setAttribute('type', 'number');
-            Yinput.setAttribute('name', 'coords');
-            Yinput.setAttribute('class', 'coords');
-            document.querySelector('.points-container').append(label1);
-            document.querySelector('.points-container').append(Xinput);
-            document.querySelector('.points-container').append(label2);
-            document.querySelector('.points-container').append(Yinput);
-        }
+function check() {
+    let a = +document.querySelector('.quantity').value.trim();
+    let b = +document.querySelector('.equation').value.trim();
+    if((a >= 2 && a <= 10) && (b >= 2 && b <= 10)) {
+        document.querySelector('.help').classList.add('unvissible');
+        buildCells(a, b);
     }
     else {
-        document.querySelector('.help').classList.remove('vissible');
+        document.querySelector('.help').classList.remove('unvissible');
     }
+}
+
+document.querySelector('.quantity').addEventListener('input', () => {
+    check();
 })
 
-document.querySelector('.draw').addEventListener('click', () => {
-    let red = true;
-    let auto = document.querySelector('.auto').checked;
-    for(let t = 0; t < document.querySelectorAll('.coords').length; t++) {
-        if(document.querySelectorAll('.coords')[t].value.trim() == '' && !auto) {
-            alert('Fill in all the coordinates, or select AutoFill!');
-            red = false;
-            break;
+document.querySelector('.equation').addEventListener('input', () => {
+    check();
+})
+
+function TransMatrix(A) {
+    var m = A.length, n = A[0].length, AT = [];
+    for (var i = 0; i < n; i++)
+     { AT[ i ] = [];
+       for (var j = 0; j < m; j++) AT[ i ][j] = A[j][ i ];
+     }
+    return AT;
+}
+
+function MultiplyMatrix(A,B) {
+    var rowsA = A.length, colsA = A[0].length,
+        rowsB = B.length, colsB = B[0].length,
+        C = [];
+    if (colsA != rowsB) return false;
+    for (var i = 0; i < rowsA; i++) C[ i ] = [];
+    for (var k = 0; k < colsB; k++)
+     { for (var i = 0; i < rowsA; i++)
+        { var t = 0;
+          for (var j = 0; j < rowsB; j++) t += A[ i ][j]*B[j][k];
+          C[ i ][k] = t;
         }
-        else if(document.querySelectorAll('.coords')[t].value.trim() == '' && auto && t % 2 === 0) {
-            document.querySelectorAll('.coords')[t].value = Math.floor(Math.random() * (700 + 700)) - 700;
+     }
+    return C;
+}
+
+function Determinant(A) {
+    var N = A.length, B = [], denom = 1, exchanges = 0;
+    for (var i = 0; i < N; ++i)
+     { B[ i ] = [];
+       for (var j = 0; j < N; ++j) B[ i ][j] = A[ i ][j];
+     }
+    for (var i = 0; i < N-1; ++i)
+     { var maxN = i, maxValue = Math.abs(B[ i ][ i ]);
+       for (var j = i+1; j < N; ++j)
+        { var value = Math.abs(B[j][ i ]);
+          if (value > maxValue){ maxN = j; maxValue = value; }
         }
-        else if(document.querySelectorAll('.coords')[t].value.trim() == '' && auto && t % 2 === 1) {
-            document.querySelectorAll('.coords')[t].value = Math.floor(Math.random() * (400 + 400)) - 400;
+       if (maxN > i)
+        { var temp = B[ i ]; B[ i ] = B[maxN]; B[maxN] = temp;
+          ++exchanges;
+        }
+       else { if (maxValue == 0) return maxValue; }
+       var value1 = B[ i ][ i ];
+       for (var j = i+1; j < N; ++j)
+        { var value2 = B[j][ i ];
+          B[j][ i ] = 0;
+          for (var k = i+1; k < N; ++k) B[j][k] = (B[j][k]*value1-B[ i ][k]*value2)/denom;
+        }
+       denom = value1;
+     }
+    if (exchanges%2) return -B[N-1][N-1];
+    else return B[N-1][N-1];
+}
+
+function isEqual(A, B) {
+    if(A.length !== B.length || A[0].length !== B[0].length)
+        return false;
+    else {
+        for(let i = 0; i < A.length; i++) {
+            for(let j = 0; j < A[i].length; j++) {
+                if(A[i][j] !== B[i][j])
+                    return false;
+            }
         }
     }
-    if(red) {
-        canva.clearRect(-700, -400, 1400, 800);
-        canva.beginPath();
-        canva.moveTo(0, -400);
-        canva.lineTo(0, 400);
-        canva.moveTo(-700, 0);
-        canva.lineTo(700, 0);
-        canva.stroke();
-        coords = [];
-        k = 0;
-        for(var j = 0; j < document.querySelectorAll('.coords').length; j += 2) {
-            k += 1;
-            coordsX.push(+document.querySelectorAll('.coords')[j].value);
-            coordsY.push(- +document.querySelectorAll('.coords')[j + 1].value);
+    return true;
+}
+
+function isPositive(A) {
+    let det = [];
+    for(let i = 1; i < A.length; i++) {
+        let c = [];
+        for(let j = 0; j < i; j++) {
+            c.push([]);
+            for(let y = 0; y < i; y++) {
+                c[j][y] = A[j][y];
+            }
         }
-        ordering(coordsX, coordsY);
-        if (k > 3) {
-            canva.moveTo(coords[0], coords[1]);
-            canva.curve(coords);
-            canva.stroke();
+        det.push(c);
+    }
+    det.push(A);
+    for(let x = 0; x < det.length; x++) {
+        if(Determinant(det[x]) <= 0)
+            return false;
+    }
+    return true;
+}
+
+function negativeMatrix(A) {
+    let B = [];
+    for(let i = 0; i < A.length; i++) {
+        B.push([]);
+        for(let j = 0; j < A[i].length; j++) {
+            B[i][j] = -A[i][j];
         }
-        for (var i = 0; i < coords.length; i += 2) {   
-            canva.beginPath();
-            canva.arc(coords[i], coords[i + 1], 2, 0, 2 * Math.PI);
-            canva.stroke();
-            canva.fillStyle = "green";
-            canva.fill();
+    }
+    return B;
+}
+
+function SumMatrix(A,B)
+{   
+    var m = A.length, n = A[0].length, C = [];
+    for (var i = 0; i < m; i++)
+     { C[ i ] = [];
+       for (var j = 0; j < n; j++) C[ i ][j] = A[ i ][j]+B[ i ][j];
+     }
+    return C;
+}
+
+function SubMatrix(A,B)
+{   
+    var m = A.length, n = A[0].length, C = [];
+    for (var i = 0; i < m; i++)
+     { C[ i ] = [];
+       for (var j = 0; j < n; j++) C[ i ][j] = A[ i ][j]-B[ i ][j];
+     }
+    return C;
+}
+
+function multMatrixNumber(a,A)
+{   
+    var m = A.length, n = A[0].length, B = [];
+    for (var i = 0; i < m; i++)
+     { B[ i ] = [];
+       for (var j = 0; j < n; j++) B[ i ][j] = a*A[ i ][j];
+     }
+    return B;
+}
+
+function multVectors(A, B) {
+    let sum = 0;
+    for(let i = 0; i < A.length; i++) {
+        sum += A[i][0] * B[i][0];
+    }
+    return sum;
+}
+
+function Solve(A, B) {
+    document.querySelector('.dec-x').innerHTML = '';
+    let x =[], d = [], g = []; s = [];
+    let nul = [];
+    for(let i = 0; i < A.length; i++) 
+        nul.push([0]);
+    x.push(nul);
+    d.push(nul);
+    g.push(negativeMatrix(B));
+    s.push(0);
+    for(let k = 1; k < A.length + 1; k++) {
+        g.push(SubMatrix(MultiplyMatrix(A, x[k - 1]), B));
+        let v = MultiplyMatrix(TransMatrix(g[k]), g[k]);
+        let b = MultiplyMatrix(TransMatrix(g[k - 1]), g[k - 1]);
+        let del = v[0] / b[0];
+        let u = multMatrixNumber(del, d[k - 1]);
+        d.push(SumMatrix(negativeMatrix(g[k]), u));
+        v = multVectors(d[k], g[k]);
+        b = MultiplyMatrix(MultiplyMatrix(TransMatrix(d[k]), A), d[k]);
+        s.push(-(v / b[0]));
+        u = multMatrixNumber(s[k], d[k]);
+        x.push(SumMatrix(x[k - 1], u));
+    }
+    let str = '';
+    for(let j = 0; j < x[x.length - 1].length; j++) {
+        str += x[x.length - 1][j][0].toFixed(2) + '; ';
+    }
+    str = str.substring(0, str.length - 2);
+    document.querySelector('.dec-x').innerHTML = str;
+}
+
+document.querySelector('.decision').addEventListener('click', () => {
+    let A = [];
+    let B = [];
+    for(let i = 0; i < document.querySelectorAll('.stroke').length; i++) {
+        A.push([]);
+        if(document.querySelectorAll('.answer')[i].value.trim() === '')
+            document.querySelectorAll('.answer')[i].value = 0;
+        B.push([+document.querySelectorAll('.answer')[i].value]);
+        for(let j = 0; j < document.querySelectorAll('.stroke')[i].querySelectorAll('.cell').length; j++) {
+            if(document.querySelectorAll('.stroke')[i].querySelectorAll('.cell')[j].value.trim() === '')
+                document.querySelectorAll('.stroke')[i].querySelectorAll('.cell')[j].value = 0;
+            A[i].push(+document.querySelectorAll('.stroke')[i].querySelectorAll('.cell')[j].value);
         }
+    }
+    if(!isEqual(A, TransMatrix(A))) {
+        A = MultiplyMatrix(TransMatrix(A), A);
+        buildCells(A[0].length, A.length);
+        for(let x = 0; x < A.length; x++) {
+            document.querySelectorAll('.answer')[x].value = B[x][0];
+            for(let y = 0; y < A[x].length; y++) {
+                document.querySelectorAll('.stroke')[x].querySelectorAll('.cell')[y].value = A[x][y];
+            }
+        }
+    }
+    if(isPositive(A)) {
+        document.querySelector('.help-answer').classList.add('unvissible');
+        Solve(A, B);
+    }
+    else {
+        document.querySelector('.help-answer').classList.remove('unvissible');
     }
 })

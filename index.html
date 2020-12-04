@@ -4,33 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="Two.css">
-    <link rel="shortcut icon" href="https://lab.visual-logic.com/wp-content/uploads/2010/08/spline_modeling_05.jpg" type="image/png">
-    <title>Spline</title>
+    <link rel="shortcut icon" href="img/matrix.png" type="image/png">
+    <title>MSG</title>
 </head>
 <body>
-    <div class="container">
-        <div class="canvas-container">
-            <canvas id="canvas" width="1400" height="800"></canvas>
-        </div>
-        <div class="button-container">
-            <h2 class="title">Working with points!</h2>
-            <form class="form" method="post" action="" onsubmit="return false">
-                <label for="number">Number of points (min = 4, max = 16)</label>
+    <div class="background"></div>
+    <main class="main">
+        <h1>Conjugate gradient method</h1>
+        <div class="main-container">
+            <div class="quantity-container">
+                <p class="description">Restrictions on the number of variables and equations: min = 2, max = 10!</p>
+                <label for="quantity">Number of variables:</label>
+                <input type="number" name="quantity" id="quantity" class="quantity" min="2" step="1" max="10" placeholder="Variables" value="2">
                 <br>
-                <input type="number" name="number" class="number" min="4" max="16" step="1" placeholder="Number" id="name">
-                <span class="help vissible">Enter the correct value!</span>
-                <br>
-                <input type="checkbox" name="auto" class="auto" id="auto">
-                <label for="auto">The autocomplete feature points</label>
-                <h4 class="points">Points (-701 < x < 701, -401 < y < 401):</h4>
-                <div class="points-container">
+                <label for="equation">Number of equations:</label>
+                <input type="number" name="equation" id="equation" class="equation" min="2" step="1" max="10" placeholder="Equations" value="2">
+                <p class="help unvissible">Enter correct values!</p>
+            </div>
+            <p class="mention">All empty cells will be filled in!</p>
+            <div class="cells-container">
+                <div class="stroke">
+                    <input type="number" name="cell" class="cell">
+                    <label class="cell-desc">x<sub>1</sub></label>
+                    <input type="number" name="cell" class="cell">
+                    <label class="cell-desc">x<sub>2</sub></label>
+                    <span>=</span>
+                    <input type="number" name="cell" class="answer">
                 </div>
-                <div class="draw-container">
-                    <button class="draw">Draw!</button>
+                <div class="stroke">
+                    <input type="number" name="cell" class="cell">
+                    <label class="cell-desc">x<sub>1</sub></label>
+                    <input type="number" name="cell" class="cell">
+                    <label class="cell-desc">x<sub>2</sub></label>
+                    <span>=</span>
+                    <input type="number" name="cell" class="answer">
                 </div>
-            </form>
+            </div>
+            <div class="button-container">
+                <p class="mention">Remember, if the matrix is not symmetric, it is converted to symmetric!</p>
+                <button class="decision">Solve!</button>
+                <p class="help-answer unvissible">The condition is not met! The matrix is not positive-definite! It is impossible to solve a system of equations using this method!</p>
+            </div>
+            <div class="decision-container">
+                <h2>Decision:</h2>
+                <p class="dec-x"></p>
+            </div>
         </div>
-    </div>
+    </main>
 </body>
     <script type="text/javascript" src="Two.js"></script>
 </html>

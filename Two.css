@@ -1,75 +1,134 @@
 * {
 	font-family: Calibri, ans-serif;
+	padding: 0;
+	margin: 0;
+	font-size: 10px;
 }
 
-.vissible {
-	opacity: 0;
-}
-
-.container {
-	display: flex;
-}
-
-.canvas-container {
-	border-radius: 5px;
-	border: 5px solid black;
-}
-
-.title {
-	text-align: center;
-	text-decoration: underline;
-	font-style: italic;
-}
-
-.button-container {
-	border: 5px solid black;
-	padding: 20px;
-	flex-grow: 1;
-	border-radius: 5px;
-	margin-left: 20px;
-	position: relative;
-}
-
-.button-container label {
+label, input {
 	cursor: pointer;
 }
 
-.number, .coords {
-	width: 60px;
-	margin-top: 5px;
-	padding: 3px;
-	border-radius: 5px;
-	background: #CFF2DF;
-	border: none;
+h1 {
+	text-align: center;
+	margin-bottom: 10px;
+	font-size: 4rem;
 }
 
-.help {
+.unvissible {
+    opacity: 0;
+}
+
+.background {
+	position: fixed;
+	height: 100%;
+	width: 100%;
+	background: linear-gradient(180deg, #0099ae, #00bf82 100%, #fff 0, #fff);
+	z-index: -1;
+}
+
+.main {
+	padding-top: 60px;
+}
+
+.main-container {
+	margin: 0 auto;
+	max-width: 1000px;
+	text-align: center;
+	padding: 25px;
+	background: white;
+	border-radius: 5px;
+}
+
+.description {
+	font-size: 1.6rem;
+	margin-bottom: 10px;
+}
+
+.quantity-container, .cells-container, .button-container, .decision-container {
+	margin-top: 10px;
+	border: 3px solid gray;
+	border-radius: 5px;
+	padding: 20px;
+}
+
+.quantity-container label, .quantity-container input {
+	margin-bottom: 10px;
+	font-size: 1.6rem;
+}
+
+.quantity-container input {
+    background-color: #CFF2DF;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.6rem;
+    padding: 5px;
+    text-align: center;
+    width: 30%;
+}
+
+.help, .help1 {
 	border: 1px solid;
-	border-radius: 5px;
-	background: #F9D2D2;
-	color: #EB1414;
-	padding: 3px;
-	transition: 0.2s;
+    border-radius: 5px;
+    background: #F9D2D2;
+    color: #EB1414;
+    padding: 3px;
+    transition: 0.2s;
+    font-size: 1.6rem;
+    width: 30%;
+    margin: 0 auto;
 }
 
-.auto {
-	margin-top: 20px;
+.help-answer {
+	border: 1px solid;
+    border-radius: 5px;
+    background: #F9D2D2;
+    color: #EB1414;
+    padding: 3px;
+    transition: 0.2s;
+    font-size: 1.6rem;
+    width: 50%;
+    margin: 0 auto;
 }
 
-.points {
-	text-decoration: underline;
-	font-style: italic;
+.stroke span {
+	font-size: 1.6rem;
+	margin-right: 5px;
 }
 
-.coords {
-	margin-right: 15px;
+.stroke label {
+	margin-right: 5px;
 }
 
-.draw {
+.stroke {
+	margin-bottom: 10px;
+}
+
+.cell, .answer {
+	width: 60px;
+    margin-top: 5px;
+    padding: 3px;
+    border-radius: 5px;
+    background: #CFF2DF;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    text-align: center;
+}
+
+.cell-desc {
+	cursor: pointer;
+	font-size: 1.6rem;
+}
+
+.decision {
+	margin: 10px;
     border-radius: 5px;
     border: none;
+    padding: 5px;
     cursor: pointer;
-	font-size: 2.5rem;
+    font-size: 2.5rem;
+    margin: 5px auto;
     appearance: none;
     text-align: center;
     padding: 15px 25px;
@@ -82,12 +141,23 @@
     box-shadow: 0 0 0 1px rgba(255,255,255,.1), 0 2px 4px 0 rgba(14,30,37,.12);
     cursor: pointer;
     border: 0;
-
 }
 
-.draw-container {
-	width: 95%;
-	text-align: center;
-	position: absolute;
-	bottom: 20px;
+.decision:hover {
+	background: #00c2b2;
+}
+
+.mention {
+	font-size: 1.6rem;
+	margin: 10px 0;
+	color: red;
+}
+
+.decision-container h2 {
+	font-size: 3rem;
+	font-style: italic;
+}
+
+.dec-x {
+	font-size: 1.6rem;
 }
