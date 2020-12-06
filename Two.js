@@ -229,6 +229,7 @@ document.querySelector('.decision').addEventListener('click', () => {
         }
     }
     if(!isEqual(A, TransMatrix(A))) {
+        B = MultiplyMatrix(TransMatrix(A), B);
         A = MultiplyMatrix(TransMatrix(A), A);
         buildCells(A[0].length, A.length);
         for(let x = 0; x < A.length; x++) {
