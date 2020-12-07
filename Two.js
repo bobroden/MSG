@@ -208,7 +208,16 @@ function Solve(A, B) {
     }
     let str = '';
     for(let j = 0; j < x[x.length - 1].length; j++) {
-        str += x[x.length - 1][j][0].toFixed(2) + '; ';
+        if(isNaN(x[x.length - 1][j][0])) {
+            if(isNaN(x[x.length - 2][j][0])) {
+                str += 0 + '; ';
+            }
+            else
+                str += x[x.length - 2][j][0].toFixed(2) + '; ';
+        }
+        else {
+            str += x[x.length - 1][j][0].toFixed(2) + '; ';
+        }
     }
     str = str.substring(0, str.length - 2);
     document.querySelector('.dec-x').innerHTML = str;
